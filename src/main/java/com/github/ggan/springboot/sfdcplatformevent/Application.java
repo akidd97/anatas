@@ -16,6 +16,8 @@
  */
 package com.github.ggan.springboot.sfdcplatformevent;
 
+import java.util.prefs.Preferences;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -46,9 +48,9 @@ public class Application {
 
 	@Autowired
 	BuildProperties buildProperties;
+	
 
 	private static Logger logger = LoggerFactory.getLogger(Application.class);
-
 
 	/**
 	 * A main method to start this application.
@@ -59,14 +61,13 @@ public class Application {
 
 	@PostConstruct
 	public void startPlatformEventSubsciptions() {
-
 		EmpConnector emp = context.getBean(EmpConnector.class);
 
 		// start platform event subscription
 		logger.info("starting salesforce platform event subscription");
 		for (int i = 0; i < salesforceEventList.length; i++) {
 			String event = salesforceEventList[i];
-			Long replayFrom = -1L; //replace with some sort of check to retrieve last persisted replay id or default to -1
+			Long replayFrom = getReplayFrom(event);
 			beanFactory.getBean(TopicSubscription.class, emp, event, replayFrom);
 			logger.info("created new salesforce platform event subscription " + event);
 		}
@@ -76,5 +77,12 @@ public class Application {
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
+	
+	private Long getReplayFrom(String event) {
+		Preferences prefs = Preferences.userRoot().node(Application.class.getName());
+		return prefs.getLong(event, -1L);
+	}
+	
+	
 
 }

@@ -6,12 +6,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Base64;
+import java.util.prefs.Preferences;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,10 +62,16 @@ public class SalesforcePlatformeventHandler {
 			while ((line = in.readLine()) != null) {
 				System.out.println(line);
 			}
+			writeReplayId(salesforceEventName, replayId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
+	}
+
+	private void writeReplayId(String event, Long replayId) {
+		Preferences prefs = Preferences.userRoot().node(Application.class.getName());
+		prefs.putLong(event, replayId);
 	}
 
 }
